@@ -1,7 +1,5 @@
 import pandas as pd
-from train import load_model
-# Por que me da guerra el relativo?
-# from .train import load_model
+from .train import load_model
 
 class Model:
     def __init__(self, model_path: str):
@@ -9,7 +7,7 @@ class Model:
 
     def infer(self, x_row: dict[str, any]) -> float:
         """
-        Devolvemos probabilidades porque no me quiero meter en el umbral de 0.5
+        Score is infered from a dict with the correct schema, socore::float is returned
         """
         X_infer = pd.DataFrame.from_dict(x_row, orient="index").T
         y_pred_prob = self.pipeline.predict_proba(X_infer)

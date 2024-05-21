@@ -8,6 +8,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import precision_recall_curve, roc_curve, auc
 from datetime import datetime
 
+ORDER_DATE = "order_date"
+DATA_PATH = "files/feature_frame.csv"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -67,7 +69,6 @@ def retrain_model(
 
 
 def serialize_model(model: Pipeline, name: str, prefix_path=None) -> None:
-    # Comprobaciones
     if prefix_path is not None:
         path = prefix_path + name
         if not os.path.exists(path):
@@ -90,8 +91,6 @@ def load_model(path: str) -> Pipeline:
 
 
 if __name__ == "__main__":
-    ORDER_DATE = "order_date"
-    DATA_PATH = "files/feature_frame.csv"
     logger.info("Training of model started")
     df_base = pd.read_csv(DATA_PATH)
     logger.info(f"Feature frame loaded. Path: {DATA_PATH}")
@@ -113,13 +112,11 @@ if __name__ == "__main__":
     df_base.sort_values(by=ORDER_DATE, inplace=True)
     quantiles = df_base[ORDER_DATE].quantile([0.7, 0.9, 1.0])
 
-    # Extract the values for each quantile
     quantile_0 = df_base[ORDER_DATE].min()
     quantile_70 = quantiles.iloc[0]
     quantile_90 = quantiles.iloc[1]
     quantile_100 = quantiles.iloc[2]
 
-    # Creamos divisiones en base al dato
     df_train = df_base[df_base[ORDER_DATE] <= quantile_70]
     df_val = df_base[
         (df_base[ORDER_DATE] > quantile_70) & (df_base[ORDER_DATE] <= quantile_90)
@@ -146,7 +143,6 @@ if __name__ == "__main__":
     logging.info(f"Train Scores: {scores_train}")
     logging.info(f"Validation Scores: {scores_val}")
 
-    # Retraining con todos los datos
     final_pipeline = Pipeline(
         [("scaler", StandardScaler()), ("log_reg", LogisticRegression())]
     )
@@ -155,7 +151,6 @@ if __name__ == "__main__":
         final_pipeline, X=df_base, target_col=target, train_cols=columnas_train
     )
     logging.info("Final model trained")
-    # generamos guardado del modelo
     current_datetime = datetime.now()
     formatted_datetime = current_datetime.strftime("%Y%m%d%H%M")
     serialize_model(
